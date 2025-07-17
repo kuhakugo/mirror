@@ -1,0 +1,30 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        run: echo "Login anonymously - pulling public image"
+
+      - name: Pull image from DockerHub
+        run: docker pull golang:1.21-alpine
+
+      - name: Login to Aliyun Container Registry (ACR)
+        run: echo "${{ secrets.ALIYUN_PASSWORD }}" | docker login registry.cn-hangzhou.aliyuncs.com -u "${{ secrets.ALIYUN_USERNAME }}" --password-stdin
+
+      - name: Tag image for ACR
+        run: docker tag golang:1.21-alpine registry.cn-hangzhou.aliyuncs.com/kuhakugo/golang:1.21-alpine
+
+      - name: Push image to ACR
+        run: docker push registry.cn-hangzhou.aliyuncs.com/kuhakugo/golang:1.21-alpine
